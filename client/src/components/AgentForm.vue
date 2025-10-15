@@ -126,6 +126,9 @@ const resetForm = () => {
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           placeholder="Enter mobile number"
         />
+        <p class="mt-1 text-sm text-gray-500">
+          At least 10 digits (e.g., +1234567890, (123) 456-7890)
+        </p>
       </div>
 
       <!-- Action Buttons -->
