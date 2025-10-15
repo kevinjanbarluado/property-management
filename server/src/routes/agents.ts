@@ -1,21 +1,27 @@
 import express from 'express';
 import { createAgent, getAllAgents, getAgent, updateAgent, deleteAgent } from '../store.js';
 import { CreatePropertyAgentRequest, UpdatePropertyAgentRequest } from '../types/propertyAgent.js';
+import { ValidationMiddleware, PropertyAgentValidationRules } from '../middleware/validation.js';
 
 const router = express.Router();
 
 // POST /api/agents
-router.post('/', (req, res) => {
-  try {
-    const agent = createAgent(req.body as CreatePropertyAgentRequest);
-    res.status(201).json(agent);
-  } catch (error) {
-    if (error instanceof Error && error.message === 'Email already exists') {
-      return res.status(409).json({ error: 'Email already exists' });
+router.post(
+  '/',
+  ValidationMiddleware.sanitizeInput,
+  ValidationMiddleware.validate(PropertyAgentValidationRules.create),
+  (req, res) => {
+    try {
+      const agent = createAgent(req.body as CreatePropertyAgentRequest);
+      res.status(201).json(agent);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Email already exists') {
+        return res.status(409).json({ error: 'Email already exists' });
+      }
+      res.status(400).json({ error: 'Invalid data' });
     }
-    res.status(400).json({ error: 'Invalid data' });
   }
-});
+);
 
 // GET /api/agents
 router.get('/', (req, res) => {
@@ -33,20 +39,25 @@ router.get('/:id', (req, res) => {
 });
 
 // PUT /api/agents/:id
-router.put('/:id', (req, res) => {
-  try {
-    const agent = updateAgent(req.params.id, req.body as UpdatePropertyAgentRequest);
-    if (!agent) {
-      return res.status(404).json({ error: 'Agent not found' });
+router.put(
+  '/:id',
+  ValidationMiddleware.sanitizeInput,
+  ValidationMiddleware.validate(PropertyAgentValidationRules.update),
+  (req, res) => {
+    try {
+      const agent = updateAgent(req.params.id, req.body as UpdatePropertyAgentRequest);
+      if (!agent) {
+        return res.status(404).json({ error: 'Agent not found' });
+      }
+      res.json(agent);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Email already exists') {
+        return res.status(409).json({ error: 'Email already exists' });
+      }
+      res.status(400).json({ error: 'Invalid data' });
     }
-    res.json(agent);
-  } catch (error) {
-    if (error instanceof Error && error.message === 'Email already exists') {
-      return res.status(409).json({ error: 'Email already exists' });
-    }
-    res.status(400).json({ error: 'Invalid data' });
   }
-});
+);
 
 // DELETE /api/agents/:id
 router.delete('/:id', (req, res) => {
