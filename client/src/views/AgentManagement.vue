@@ -1,9 +1,9 @@
 <script setup>
+import { ref } from 'vue'
 import AgentForm from '../components/AgentForm.vue'
 import AlertMessage from '../components/AlertMessage.vue'
-import { useAgentApi } from '../composables/useAgentApi.js'
 
-const { message, messageType } = useAgentApi()
+const agentFormRef = ref(null)
 
 const handleAgentCreated = (agent) => {
   console.log('Agent created:', agent)
@@ -24,10 +24,14 @@ const handleAgentUpdated = (agent) => {
       </div>
 
       <!-- Alert Message -->
-      <AlertMessage :message="message" :type="messageType" />
+      <AlertMessage 
+        :message="agentFormRef?.message" 
+        :type="agentFormRef?.messageType" 
+      />
 
       <!-- Form -->
       <AgentForm 
+        ref="agentFormRef"
         @agent-created="handleAgentCreated"
         @agent-updated="handleAgentUpdated"
       />

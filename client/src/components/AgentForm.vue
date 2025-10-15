@@ -4,7 +4,9 @@ import { useAgentApi } from '../composables/useAgentApi.js'
 
 const emit = defineEmits(['agentCreated', 'agentUpdated'])
 
-const { isLoading, createAgent, updateAgent } = useAgentApi()
+const { isLoading, message, messageType, createAgent, updateAgent } = useAgentApi()
+
+defineExpose({ message, messageType })
 
 // Reactive form data
 const formData = reactive({
