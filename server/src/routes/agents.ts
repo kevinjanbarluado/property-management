@@ -10,6 +10,9 @@ router.post('/', (req, res) => {
     const agent = createAgent(req.body as CreatePropertyAgentRequest);
     res.status(201).json(agent);
   } catch (error) {
+    if (error instanceof Error && error.message === 'Email already exists') {
+      return res.status(409).json({ error: 'Email already exists' });
+    }
     res.status(400).json({ error: 'Invalid data' });
   }
 });
@@ -31,11 +34,18 @@ router.get('/:id', (req, res) => {
 
 // PUT /api/agents/:id
 router.put('/:id', (req, res) => {
-  const agent = updateAgent(req.params.id, req.body as UpdatePropertyAgentRequest);
-  if (!agent) {
-    return res.status(404).json({ error: 'Agent not found' });
+  try {
+    const agent = updateAgent(req.params.id, req.body as UpdatePropertyAgentRequest);
+    if (!agent) {
+      return res.status(404).json({ error: 'Agent not found' });
+    }
+    res.json(agent);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'Email already exists') {
+      return res.status(409).json({ error: 'Email already exists' });
+    }
+    res.status(400).json({ error: 'Invalid data' });
   }
-  res.json(agent);
 });
 
 // DELETE /api/agents/:id
@@ -44,7 +54,7 @@ router.delete('/:id', (req, res) => {
   if (!deleted) {
     return res.status(404).json({ error: 'Agent not found' });
   }
-  res.status(204).send();
+  res.status(200).json({ message: 'Agent deleted successfully' });
 });
 
 export default router;
