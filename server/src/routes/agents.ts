@@ -5,7 +5,38 @@ import { ValidationMiddleware, PropertyAgentValidationRules } from '../middlewar
 
 const router = express.Router();
 
-// POST /api/agents
+/**
+ * @swagger
+ * /api/agents:
+ *   post:
+ *     summary: Create a new property agent
+ *     tags: [Agents]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreatePropertyAgentRequest'
+ *     responses:
+ *       201:
+ *         description: Agent created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PropertyAgent'
+ *       400:
+ *         description: Invalid data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       409:
+ *         description: Email already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.post(
   '/',
   ValidationMiddleware.sanitizeInput,
@@ -23,13 +54,55 @@ router.post(
   }
 );
 
-// GET /api/agents
+/**
+ * @swagger
+ * /api/agents:
+ *   get:
+ *     summary: Get all property agents
+ *     tags: [Agents]
+ *     responses:
+ *       200:
+ *         description: List of all agents
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/PropertyAgent'
+ */
 router.get('/', (req, res) => {
   const agents = getAllAgents();
   res.json(agents);
 });
 
-// GET /api/agents/:id
+/**
+ * @swagger
+ * /api/agents/{id}:
+ *   get:
+ *     summary: Get a specific property agent by ID
+ *     tags: [Agents]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Agent ID
+ *     responses:
+ *       200:
+ *         description: Agent details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PropertyAgent'
+ *       404:
+ *         description: Agent not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.get('/:id', (req, res) => {
   const agent = getAgent(req.params.id);
   if (!agent) {
@@ -38,7 +111,52 @@ router.get('/:id', (req, res) => {
   res.json(agent);
 });
 
-// PUT /api/agents/:id
+/**
+ * @swagger
+ * /api/agents/{id}:
+ *   put:
+ *     summary: Update a property agent
+ *     tags: [Agents]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Agent ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdatePropertyAgentRequest'
+ *     responses:
+ *       200:
+ *         description: Agent updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PropertyAgent'
+ *       400:
+ *         description: Invalid data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Agent not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       409:
+ *         description: Email already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.put(
   '/:id',
   ValidationMiddleware.sanitizeInput,
@@ -59,7 +177,34 @@ router.put(
   }
 );
 
-// DELETE /api/agents/:id
+/**
+ * @swagger
+ * /api/agents/{id}:
+ *   delete:
+ *     summary: Delete a property agent
+ *     tags: [Agents]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Agent ID
+ *     responses:
+ *       200:
+ *         description: Agent deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessMessage'
+ *       404:
+ *         description: Agent not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.delete('/:id', (req, res) => {
   const deleted = deleteAgent(req.params.id);
   if (!deleted) {
