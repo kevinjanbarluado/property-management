@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import agentsRouter from './routes/agents.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,5 +15,6 @@ app.get('/', (_req, res) => {
     });
 });
 
+app.use('/api/agents', agentsRouter);
 
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
