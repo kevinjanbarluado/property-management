@@ -1,12 +1,16 @@
 <script setup>
-import { reactive } from 'vue'
+import { reactive, ref, onMounted, watch } from 'vue'
 import { useAgentApi } from '../composables/useAgentApi.js'
 
 const emit = defineEmits(['agentCreated', 'agentUpdated'])
 
-const { isLoading, message, messageType, createAgent, updateAgent } = useAgentApi()
+const { isLoading, message, messageType, createAgent, updateAgent, fetchAgents } = useAgentApi()
 
 defineExpose({ message, messageType })
+
+// List of existing agents
+const agents = ref([])
+const selectedAgentId = ref('new')
 
 // Reactive form data
 const formData = reactive({
@@ -15,6 +19,40 @@ const formData = reactive({
   lastName: '',
   email: '',
   mobileNumber: ''
+})
+
+// Fetch agents on mount
+onMounted(async () => {
+  const result = await fetchAgents()
+  if (result && result.data) {
+    agents.value = result.data
+  }
+})
+
+// Watch for agent selection and populate form
+watch(selectedAgentId, (newId) => {
+  if (newId === 'new') {
+    // Create new agent mode - clear form
+    Object.assign(formData, {
+      id: '',
+      firstName: '',
+      lastName: '',
+      email: '',
+      mobileNumber: ''
+    })
+  } else if (newId) {
+    // Edit existing agent
+    const agent = agents.value.find(a => a.id === newId)
+    if (agent) {
+      Object.assign(formData, {
+        id: agent.id,
+        firstName: agent.firstName,
+        lastName: agent.lastName,
+        email: agent.email,
+        mobileNumber: agent.mobileNumber
+      })
+    }
+  }
 })
 
 // Handle form submission
@@ -29,43 +67,58 @@ const handleSubmit = async () => {
   let result
   if (formData.id) {
     result = await updateAgent(formData.id, requestData)
-    if (result) emit('agentUpdated', result)
+    if (result) {
+      emit('agentUpdated', result)
+      // Refresh agents list
+      const updatedAgents = await fetchAgents()
+      if (updatedAgents && updatedAgents.data) {
+        agents.value = updatedAgents.data
+      }
+    }
   } else {
     result = await createAgent(requestData)
     if (result) {
       formData.id = result.id
       emit('agentCreated', result)
+      // Add the new agent to the list and select it
+      agents.value.push(result)
+      selectedAgentId.value = result.id
     }
   }
 }
 
-// Reset form
+// Reset form (triggers watch to clear form)
 const resetForm = () => {
-  Object.assign(formData, {
-    id: '',
-    firstName: '',
-    lastName: '',
-    email: '',
-    mobileNumber: ''
-  })
+  selectedAgentId.value = 'new'
 }
 </script>
 
 <template>
   <div class="bg-white rounded-lg shadow-md p-6">
     <form @submit.prevent="handleSubmit" class="space-y-6">
-      <!-- ID Field (for updates) -->
+      <!-- Agent Selection -->
       <div>
-        <label for="id" class="block text-sm font-medium text-gray-700 mb-2">
-          Agent ID (leave empty for new agent)
+        <label for="agentSelect" class="block text-sm font-medium text-gray-700 mb-2">
+          Select Agent
         </label>
-        <input
-          type="text"
-          id="id"
-          v-model="formData.id"
+        <select
+          id="agentSelect"
+          v-model="selectedAgentId"
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          placeholder="Enter agent ID for updates"
-        />
+        >
+          <option value="new">Create New Agent</option>
+          <option disabled>──────────</option>
+          <option 
+            v-for="agent in agents" 
+            :key="agent.id" 
+            :value="agent.id"
+          >
+            {{ agent.firstName }} {{ agent.lastName }} - {{ agent.email }}
+          </option>
+        </select>
+        <p class="mt-1 text-sm text-gray-500">
+          Select an existing agent to edit or create a new one
+        </p>
       </div>
 
       <!-- First Name Field -->
